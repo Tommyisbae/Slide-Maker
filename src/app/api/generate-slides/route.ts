@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server';
 export interface Slide {
     title: string;
     bullets: string[];
-    speakerNotes?: string;
 }
 
 export async function POST(req: Request) {
@@ -58,14 +57,12 @@ Return ONLY a valid JSON array of slide objects. No markdown, no code blocks, no
 Each slide object must have:
 - "title": string (the slide title)
 - "bullets": string[] (array of 3-5 bullet points)
-- "speakerNotes": string (additional context for the presenter)
 
 Example format:
 [
   {
     "title": "Introduction to Topic",
-    "bullets": ["First key point explained clearly", "Second important concept", "Third supporting detail"],
-    "speakerNotes": "This slide introduces..."
+    "bullets": ["First key point explained clearly", "Second important concept", "Third supporting detail"]
   }
 ]`;
 
@@ -86,8 +83,7 @@ Example format:
             // Validate slide structure
             slides = slides.map((slide, index) => ({
                 title: slide.title || `Slide ${index + 1}`,
-                bullets: Array.isArray(slide.bullets) ? slide.bullets : [],
-                speakerNotes: slide.speakerNotes || ''
+                bullets: Array.isArray(slide.bullets) ? slide.bullets : []
             }));
         } catch (parseError) {
             console.error('Failed to parse AI response:', text);

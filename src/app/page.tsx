@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import {
   FiDownload,
   FiZap,
@@ -13,13 +14,21 @@ import {
   FiEyeOff,
   FiCheck,
   FiFileText,
-  FiCpu
+  FiPrinter,
+  FiClock,
+  FiTrash2
 } from 'react-icons/fi';
 
 interface Slide {
   title: string;
   bullets: string[];
-  speakerNotes?: string;
+}
+
+interface HistoryItem {
+  id: string;
+  title: string;
+  date: string;
+  slides: Slide[];
 }
 
 export default function Home() {
@@ -34,11 +43,24 @@ export default function Home() {
 
   const [apiKey, setApiKey] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) setApiKey(savedKey);
+
+    const savedHistory = localStorage.getItem('slide_history');
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error('Failed to parse history', e);
+      }
+    }
   }, []);
 
   const saveApiKey = (key: string) => {
@@ -49,6 +71,39 @@ export default function Home() {
       localStorage.removeItem('gemini_api_key');
     }
   };
+
+  const saveToHistory = (newSlides: Slide[], title: string) => {
+    const newItem: HistoryItem = {
+      id: Date.now().toString(),
+      title: title || 'Untitled Presentation',
+      date: new Date().toLocaleDateString(),
+      slides: newSlides,
+    };
+
+    const updatedHistory = [newItem, ...history].slice(0, 20); // Keep last 20
+    setHistory(updatedHistory);
+    localStorage.setItem('slide_history', JSON.stringify(updatedHistory));
+  };
+
+  const loadFromHistory = (item: HistoryItem) => {
+    setSlides(item.slides);
+    setPresentationTitle(item.title);
+    setShowHistory(false);
+    setViewMode('grid');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const deleteHistoryItem = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedHistory = history.filter(item => item.id !== id);
+    setHistory(updatedHistory);
+    localStorage.setItem('slide_history', JSON.stringify(updatedHistory));
+  };
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: presentationTitle || 'Presentation',
+  });
 
   const generateSlides = async () => {
     if (!content.trim()) {
@@ -77,6 +132,7 @@ export default function Home() {
 
       setSlides(data.slides);
       setCurrentPreviewIndex(0);
+      saveToHistory(data.slides, presentationTitle);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -122,13 +178,13 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen relative pb-20">
-      {/* Background Decorative Blobs */}
-      <div className="fixed top-20 left-20 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl -z-10 animate-float" />
-      <div className="fixed bottom-20 right-20 w-[30rem] h-[30rem] bg-pink-600/10 rounded-full blur-3xl -z-10 animate-float" style={{ animationDelay: '-3s' }} />
+    <main className="min-h-screen relative pb-20 print:pb-0 print:bg-white">
+      {/* Background Decorative Blobs - Hide in print */}
+      <div className="print:hidden fixed top-20 left-20 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl -z-10 animate-float" />
+      <div className="print:hidden fixed bottom-20 right-20 w-[30rem] h-[30rem] bg-pink-600/10 rounded-full blur-3xl -z-10 animate-float" style={{ animationDelay: '-3s' }} />
 
-      {/* Header */}
-      <header className="border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-40">
+      {/* Header - Hide in print */}
+      <header className="print:hidden border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
@@ -138,6 +194,15 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowHistory(true)}
+              className="p-2 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-colors relative"
+              title="History"
+            >
+              <FiClock className="text-xl" />
+              {history.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-violet-500 rounded-full" />}
+            </button>
+
             {apiKey ? (
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium">
                 <FiCheck size={12} />
@@ -163,6 +228,43 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowHistory(false)}>
+          <div className="glass-panel w-full max-w-lg p-6 rounded-2xl relative overflow-hidden flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6 shrink-0">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <FiClock /> History
+              </h2>
+              <button onClick={() => setShowHistory(false)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                <FiX />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+              {history.length === 0 ? (
+                <p className="text-zinc-500 text-center py-8">No saved presentations yet.</p>
+              ) : (
+                history.map(item => (
+                  <div key={item.id} onClick={() => loadFromHistory(item)} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 cursor-pointer group flex items-center justify-between transition-all">
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">{item.title}</h3>
+                      <p className="text-xs text-zinc-500">{item.date} • {item.slides.length} slides</p>
+                    </div>
+                    <button
+                      onClick={(e) => deleteHistoryItem(item.id, e)}
+                      className="p-2 rounded-lg text-zinc-600 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-white/5 transition-all"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Settings Modal */}
       {showSettings && (
@@ -202,7 +304,7 @@ export default function Home() {
                 </div>
                 <p className="mt-3 text-xs text-zinc-500">
                   Don't have a key? Get one for free at{' '}
-                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 hover:underline">
+                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 hover:text-violet-300 hover:underline">
                     Google AI Studio
                   </a>
                 </p>
@@ -218,9 +320,9 @@ export default function Home() {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-6 pt-12 md:pt-20">
-        {/* Hero Section */}
-        <div className="text-center mb-16 relative">
+      <div className="max-w-6xl mx-auto px-6 pt-12 md:pt-20 print:pt-0 print:px-0 print:max-w-none">
+        {/* Hero Section - Hide in print */}
+        <div className="print:hidden text-center mb-16 relative">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold mb-6 animate-fade-in-up">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
@@ -240,8 +342,8 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Main Input Card */}
-        <div className="glass-panel p-1 rounded-3xl mb-12 max-w-4xl mx-auto">
+        {/* Main Input Card - Hide in print */}
+        <div className="print:hidden glass-panel p-1 rounded-3xl mb-12 max-w-4xl mx-auto">
           <div className="bg-black/40 rounded-[1.3rem] p-6 md:p-8">
             <div className="grid md:grid-cols-[1fr,auto] gap-6 mb-6">
               <div className="space-y-2">
@@ -264,7 +366,7 @@ export default function Home() {
               <div className="relative">
                 <textarea
                   className="w-full h-64 bg-white/5 border border-white/10 rounded-xl p-5 text-zinc-200 focus:outline-none focus:border-violet-500/50 transition-all placeholder:text-zinc-600 resize-none leading-relaxed"
-                  placeholder="Paste your content here...&#10;&#10;The AI will analyze the text, extract key concepts, and organize them into structured slides with bullet points and speaker notes."
+                  placeholder="Paste your content here...&#10;&#10;The AI will analyze the text, extract key concepts, and organize them into structured slides with bullet points."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                 />
@@ -309,7 +411,8 @@ export default function Home() {
         {/* Results Section */}
         {slides.length > 0 && (
           <section className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="flex items-center justify-between mb-8">
+            {/* Toolbar - Hide in Print */}
+            <div className="print:hidden flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                   <span className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sm font-mono border border-white/10">
@@ -335,24 +438,40 @@ export default function Home() {
                   </button>
                 </div>
 
-                <button
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-all shadow-lg shadow-violet-600/20"
-                  onClick={downloadPptx}
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? (
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <FiDownload />
-                  )}
-                  <span>Export PPTX</span>
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition-all"
+                    onClick={() => handlePrint && handlePrint()}
+                  >
+                    <FiPrinter />
+                    <span className="hidden md:inline">PDF</span>
+                  </button>
+                  <button
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-all shadow-lg shadow-violet-600/20"
+                    onClick={downloadPptx}
+                    disabled={isDownloading}
+                  >
+                    {isDownloading ? (
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <FiDownload />
+                    )}
+                    <span>PPTX</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Grid View */}
-            {viewMode === 'grid' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+            {/* Printable Content Area */}
+            <div ref={printRef} className="print:w-full print:bg-white print:text-black">
+              {/* Print Title Page */}
+              <div className="hidden print:flex flex-col items-center justify-center h-screen break-after-always text-center p-20">
+                <h1 className="text-6xl font-bold mb-8 text-black">{presentationTitle}</h1>
+                <p className="text-2xl text-gray-500">Generated by SlideMaker</p>
+              </div>
+
+              {/* Grid View (default for web, ignored for print layout loop below) */}
+              <div className={`${viewMode === 'grid' ? 'grid' : 'hidden'} print:hidden md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20`}>
                 {slides.map((slide, index) => (
                   <div key={index} className="group relative bg-zinc-900 border border-white/10 rounded-xl overflow-hidden hover:border-violet-500/50 transition-all hover:shadow-[0_0_30px_rgba(124,58,237,0.1)] hover:-translate-y-1">
                     {/* Header Bar */}
@@ -373,69 +492,74 @@ export default function Home() {
                           </li>
                         ))}
                       </ul>
-
-                      {slide.speakerNotes && (
-                        <div className="flex items-center gap-2 text-xs text-zinc-500 border-t border-white/5 pt-4">
-                          <div className="w-4 h-4 rounded-full bg-white/5 flex items-center justify-center"><FiCpu size={10} /></div>
-                          <span className="truncate max-w-[200px]">{slide.speakerNotes}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
               </div>
-            )}
 
-            {/* Single View */}
-            {viewMode === 'single' && (
-              <div className="max-w-4xl mx-auto">
-                <div className="glass-panel rounded-2xl p-1 relative overflow-hidden">
-                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500" />
+              {/* Single View (for web focus mode) */}
+              {viewMode === 'single' && (
+                <div className="print:hidden max-w-4xl mx-auto">
+                  <div className="glass-panel rounded-2xl p-1 relative overflow-hidden">
+                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500" />
 
-                  <div className="bg-black/80 rounded-xl p-8 md:p-12 min-h-[400px] flex flex-col items-center justify-center text-center">
-                    <span className="text-sm font-mono text-violet-400/80 mb-6 border border-violet-500/20 px-3 py-1 rounded-full">{currentPreviewIndex + 1} / {slides.length}</span>
+                    <div className="bg-black/80 rounded-xl p-8 md:p-12 min-h-[400px] flex flex-col items-center justify-center text-center">
+                      <span className="text-sm font-mono text-violet-400/80 mb-6 border border-violet-500/20 px-3 py-1 rounded-full">{currentPreviewIndex + 1} / {slides.length}</span>
 
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 max-w-2xl">{slides[currentPreviewIndex].title}</h2>
+                      <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 max-w-2xl">{slides[currentPreviewIndex].title}</h2>
 
-                    <div className="w-full max-w-2xl text-left space-y-4 mb-12">
-                      {slides[currentPreviewIndex].bullets.map((bullet, bIndex) => (
-                        <div key={bIndex} className="flex gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors group">
-                          <div className="mt-1.5 w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)] shrink-0" />
-                          <p className="text-lg text-zinc-300 group-hover:text-white transition-colors">{bullet}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {slides[currentPreviewIndex].speakerNotes && (
-                      <div className="w-full max-w-2xl bg-white/5 rounded-xl p-6 border border-white/5 text-left">
-                        <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <FiCpu /> Speaker Notes
-                        </h4>
-                        <p className="text-zinc-400 text-sm leading-relaxed">{slides[currentPreviewIndex].speakerNotes}</p>
+                      <div className="w-full max-w-2xl text-left space-y-4 mb-12">
+                        {slides[currentPreviewIndex].bullets.map((bullet, bIndex) => (
+                          <div key={bIndex} className="flex gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors group">
+                            <div className="mt-1.5 w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)] shrink-0" />
+                            <p className="text-lg text-zinc-300 group-hover:text-white transition-colors">{bullet}</p>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
+                  </div>
+
+                  {/* Navigation */}
+                  <div className="flex items-center justify-center gap-4 mt-8">
+                    <button
+                      className="p-4 rounded-full glass-button hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
+                      onClick={() => setCurrentPreviewIndex(prev => Math.max(0, prev - 1))}
+                      disabled={currentPreviewIndex === 0}
+                    >
+                      <FiChevronLeft size={24} />
+                    </button>
+                    <button
+                      className="p-4 rounded-full glass-button hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
+                      onClick={() => setCurrentPreviewIndex(prev => Math.min(slides.length - 1, prev + 1))}
+                      disabled={currentPreviewIndex === slides.length - 1}
+                    >
+                      <FiChevronRight size={24} />
+                    </button>
                   </div>
                 </div>
+              )}
 
-                {/* Navigation */}
-                <div className="flex items-center justify-center gap-4 mt-8">
-                  <button
-                    className="p-4 rounded-full glass-button hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
-                    onClick={() => setCurrentPreviewIndex(prev => Math.max(0, prev - 1))}
-                    disabled={currentPreviewIndex === 0}
-                  >
-                    <FiChevronLeft size={24} />
-                  </button>
-                  <button
-                    className="p-4 rounded-full glass-button hover:scale-105 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
-                    onClick={() => setCurrentPreviewIndex(prev => Math.min(slides.length - 1, prev + 1))}
-                    disabled={currentPreviewIndex === slides.length - 1}
-                  >
-                    <FiChevronRight size={24} />
-                  </button>
-                </div>
+              {/* Print Layout (Only visible when printing) */}
+              <div className="hidden print:block">
+                {slides.map((slide, index) => (
+                  <div key={index} className="h-screen flex flex-col justify-center p-16 break-after-always border-4 border-black box-border">
+                    <div className="mb-12">
+                      <span className="text-lg font-mono text-gray-500 uppercase tracking-widest block mb-4">Slide {index + 1}</span>
+                      <h2 className="text-5xl font-bold text-black border-b-4 border-black pb-6">{slide.title}</h2>
+                    </div>
+
+                    <ul className="space-y-8">
+                      {slide.bullets.map((bullet, bIndex) => (
+                        <li key={bIndex} className="text-3xl text-black pl-8 relative leading-relaxed">
+                          <span className="absolute left-0 top-4 w-3 h-3 rounded-full bg-black" />
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
           </section>
         )}
       </div>
