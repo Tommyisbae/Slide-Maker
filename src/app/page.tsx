@@ -16,7 +16,8 @@ import {
   FiFileText,
   FiPrinter,
   FiClock,
-  FiTrash2
+  FiTrash2,
+  FiMessageSquare
 } from 'react-icons/fi';
 
 interface Slide {
@@ -194,6 +195,14 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
+            <a
+              href="mailto:ariyibi.slidemaker@gmail.com?subject=SlideMaker Feedback"
+              className="hidden md:flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              <FiMessageSquare />
+              Feedback
+            </a>
+
             <button
               onClick={() => setShowHistory(true)}
               className="p-2 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-colors relative"
