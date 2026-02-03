@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
-import officeParser from 'officeparser';
+
+// Use require for libraries that don't export default for ESM compatibility
+// @ts-ignore
+const pdf = require('pdf-parse');
+// @ts-ignore
+const officeParser = require('officeparser');
 
 export async function POST(req: NextRequest) {
     try {
