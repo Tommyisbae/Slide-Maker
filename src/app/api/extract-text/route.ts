@@ -79,20 +79,21 @@ export async function POST(req: NextRequest) {
                     // Start looking for the main class/function
                     // The log showed `PDFParse: [class (anonymous)]`, let's try that or look for a default
                     if (parseFunction.PDFParse) {
-                        // Sometimes the class itself is what we need, but usually pdf-parse exports a function that wraps it.
-                        // Let's fallback to assuming standard usage: require('pdf-parse')(buffer)
-                        // If the main export isn't a function, we might be in a weird spot.
-                        // However, many libraries export the function as 'default' in ESM.
-
-                        console.log('[Extract API] pdfParser keys:', Object.keys(parseFunction));
+                        console.log('[Extract API] Found PDFParse property, using it.');
+                        parseFunction = parseFunction.PDFParse;
                     }
                 }
 
                 // If we still don't have a function, try to force it or fail gracefully with more info
                 if (typeof parseFunction !== 'function') {
-                    console.error('[Extract API] pdfParser is still not a function after checks:', typeof parseFunction);
+                    console.error('[Extract API] pdfParser is still not a function after checks. Keys:', Object.keys(parseFunction || {}));
                     throw new Error('Internal dependency error: pdf-parse is not a function');
                 }
+
+                // In some cases `pdf-parse` export needs to be instantiated if it's a class, 
+                // but checking the docs it is usually just called. 
+                // However, if it's the class, we might need options? 
+                // Standard usage: pdf(dataBuffer).then(...)
 
                 const data = await parseFunction(buffer);
                 text = data.text;
