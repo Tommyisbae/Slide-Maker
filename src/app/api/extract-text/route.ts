@@ -1,6 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mammoth from 'mammoth';
 
+// @ts-ignore
+if (!global.DOMMatrix) {
+    // @ts-ignore
+    global.DOMMatrix = class DOMMatrix { };
+}
+// @ts-ignore
+if (!global.ImageData) {
+    // @ts-ignore
+    global.ImageData = class ImageData { };
+}
+// @ts-ignore
+if (!global.Path2D) {
+    // @ts-ignore
+    global.Path2D = class Path2D { };
+}
+// @ts-ignore
+if (!global.Promise.withResolvers) {
+    // @ts-ignore
+    global.Promise.withResolvers = function () {
+        let resolve, reject;
+        const promise = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        });
+        return { promise, resolve, reject };
+    };
+}
+
 // Use require for libraries that don't export default for ESM compatibility
 // @ts-ignore
 const pdf = require('pdf-parse');
