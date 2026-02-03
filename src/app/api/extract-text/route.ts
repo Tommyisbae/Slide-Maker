@@ -63,11 +63,38 @@ export async function POST(req: NextRequest) {
         if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
             console.log('[Extract API] Using pdf-parse');
             try {
-                if (typeof pdfParser !== 'function') {
-                    console.error('[Extract API] pdf-parse is not a function:', typeof pdfParser, pdfParser);
+                // In some environments, pdf-parse might be the default export or a named export
+                // Based on logs: pdfParser is an object with { PDFParse: [class], ... }
+                // We need to find the main entry point. Usually it's the module.exports itself, but here it seems nested.
+
+                let parseFunction = pdfParser;
+
+                // If it's the module object with a default property
+                if (parseFunction && parseFunction.default) {
+                    parseFunction = parseFunction.default;
+                }
+
+                // If it's an object but not a function, looking for known entry points
+                if (typeof parseFunction !== 'function') {
+                    // Start looking for the main class/function
+                    // The log showed `PDFParse: [class (anonymous)]`, let's try that or look for a default
+                    if (parseFunction.PDFParse) {
+                        // Sometimes the class itself is what we need, but usually pdf-parse exports a function that wraps it.
+                        // Let's fallback to assuming standard usage: require('pdf-parse')(buffer)
+                        // If the main export isn't a function, we might be in a weird spot.
+                        // However, many libraries export the function as 'default' in ESM.
+
+                        console.log('[Extract API] pdfParser keys:', Object.keys(parseFunction));
+                    }
+                }
+
+                // If we still don't have a function, try to force it or fail gracefully with more info
+                if (typeof parseFunction !== 'function') {
+                    console.error('[Extract API] pdfParser is still not a function after checks:', typeof parseFunction);
                     throw new Error('Internal dependency error: pdf-parse is not a function');
                 }
-                const data = await pdfParser(buffer);
+
+                const data = await parseFunction(buffer);
                 text = data.text;
             } catch (pdfError) {
                 console.error('[Extract API] pdf-parse failed:', pdfError);
