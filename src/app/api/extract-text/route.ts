@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         console.log(`[Extract API] Processing file with Gemini: ${file.name} (${fileType})`);
 
         const genAI = new GoogleGenerativeAI(finalApiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const prompt = `Extract all the text content from this document.
     
