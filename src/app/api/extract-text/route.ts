@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
         console.log(`[Extract API] Processing file with Gemini: ${file.name} (${fileType})`);
 
         const genAI = new GoogleGenerativeAI(finalApiKey);
-        // Use 1.5-flash for extraction as it handles large contexts efficiently and hits fewer rate limits
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        // Use 1.5-flash-latest for stability and best quota
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
         const prompt = `Extract all the text content from this document.
     
