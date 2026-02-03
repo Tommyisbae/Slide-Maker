@@ -29,21 +29,30 @@ if (!global.Promise.withResolvers) {
     };
 }
 
-// Use require for libraries that don't export default for ESM compatibility
+// Helper to safely get the module (handles CJS/ESM interop)
 // @ts-ignore
-const pdf = require('pdf-parse');
+const getModule = (mod) => {
+    return mod && mod.__esModule && mod.default ? mod.default : mod;
+};
+
+// Load modules
 // @ts-ignore
-const officeParser = require('officeparser');
+const pdfParser = getModule(require('pdf-parse'));
+// @ts-ignore
+const officeParser = getModule(require('officeparser'));
 
 export async function POST(req: NextRequest) {
+    console.log('[Extract API] Request received');
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;
 
         if (!file) {
+            console.error('[Extract API] No file provided');
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
+        console.log(`[Extract API] Processing file: ${file.name} (${file.type})`);
         const buffer = Buffer.from(await file.arrayBuffer());
         let text = '';
 
@@ -52,8 +61,18 @@ export async function POST(req: NextRequest) {
 
         // Determine processing strategy
         if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-            const data = await pdf(buffer);
-            text = data.text;
+            console.log('[Extract API] Using pdf-parse');
+            try {
+                if (typeof pdfParser !== 'function') {
+                    console.error('[Extract API] pdf-parse is not a function:', typeof pdfParser, pdfParser);
+                    throw new Error('Internal dependency error: pdf-parse is not a function');
+                }
+                const data = await pdfParser(buffer);
+                text = data.text;
+            } catch (pdfError) {
+                console.error('[Extract API] pdf-parse failed:', pdfError);
+                throw new Error('Failed to parse PDF file');
+            }
         } else if (
             fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
             fileName.endsWith('.docx')
@@ -65,6 +84,7 @@ export async function POST(req: NextRequest) {
             fileName.endsWith('.ppt') ||
             fileName.endsWith('.odp')
         ) {
+            console.log('[Extract API] Using officeparser');
             // OfficeParser is callback-based, check if we can promisify or use async version if available.
             // It seems officeparser.parseOfficeAsync is available in v4+
             try {
