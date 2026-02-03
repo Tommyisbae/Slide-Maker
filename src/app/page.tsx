@@ -118,6 +118,9 @@ export default function Home() {
 
     const formData = new FormData();
     formData.append('file', file);
+    if (apiKey) {
+      formData.append('apiKey', apiKey);
+    }
 
     try {
       const response = await fetch('/api/extract-text', {
