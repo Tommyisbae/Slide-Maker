@@ -17,7 +17,8 @@ import {
   FiPrinter,
   FiClock,
   FiTrash2,
-  FiMessageSquare
+  FiMessageSquare,
+  FiUpload
 } from 'react-icons/fi';
 
 interface Slide {
@@ -105,6 +106,45 @@ export default function Home() {
     contentRef: printRef,
     documentTitle: presentationTitle || 'Presentation',
   });
+
+  const [isExtracting, setIsExtracting] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsExtracting(true);
+    setError('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/extract-text', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to extract text');
+      }
+
+      if (data.text) {
+        setContent(prev => {
+          const separator = prev.trim() ? '\n\n---\n\n' : '';
+          return prev + separator + `[Extracted from ${file.name}]:\n` + data.text;
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to extract text from file');
+    } finally {
+      setIsExtracting(false);
+      // Reset input
+      e.target.value = '';
+    }
+  };
 
   const generateSlides = async () => {
     if (!content.trim()) {
@@ -375,12 +415,36 @@ export default function Home() {
               <div className="relative">
                 <textarea
                   className="w-full h-64 bg-white/5 border border-white/10 rounded-xl p-5 text-zinc-200 focus:outline-none focus:border-violet-500/50 transition-all placeholder:text-zinc-600 resize-none leading-relaxed"
-                  placeholder="Paste your content here...&#10;&#10;The AI will analyze the text, extract key concepts, and organize them into structured slides with bullet points."
+                  placeholder="Paste your content here or upload a file (PDF, DOCX, PPTX)..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                 />
-                <div className="absolute bottom-4 right-4 pointer-events-none text-zinc-700">
-                  <FiFileText size={24} />
+
+                {/* Drag & Drop Overlay */}
+                <div
+                  className="absolute inset-0 rounded-xl border-2 border-dashed border-transparent pointer-events-none transition-all"
+                  id="drag-overlay"
+                />
+
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    className="hidden"
+                    accept=".pdf,.docx,.pptx,.txt,.md"
+                    onChange={handleFileUpload}
+                  />
+                  <button
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                    disabled={isExtracting}
+                    className="p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                    title="Upload File (PDF, DOCX, PPTX, TXT)"
+                  >
+                    {isExtracting ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <FiUpload size={20} />}
+                  </button>
+                  <div className="pointer-events-none text-zinc-700 p-2">
+                    <FiFileText size={24} />
+                  </div>
                 </div>
               </div>
             </div>
