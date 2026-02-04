@@ -25,13 +25,15 @@ export async function POST(req: NextRequest) {
         pptx.title = presentationTitle || 'Generated Presentation';
         pptx.subject = 'AI-Generated Educational Slides';
 
-        // Define master slide with consistent styling
+        // Define master slide with consistent styling (Light Mode)
         pptx.defineSlideMaster({
             title: 'MAIN_SLIDE',
-            background: { color: '1a1a2e' },
+            background: { color: 'ffffff' }, // White background
             objects: [
                 // Gradient accent bar at top
                 { rect: { x: 0, y: 0, w: '100%', h: 0.15, fill: { color: '6366f1' } } },
+                // Bottom accent line
+                { rect: { x: 0, y: 5.5, w: '100%', h: 0.05, fill: { color: 'e2e8f0' } } }
             ]
         });
 
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
             h: 1.5,
             fontSize: 44,
             fontFace: 'Arial',
-            color: 'ffffff',
+            color: '1e293b', // Slate 800
             bold: true,
             align: 'center'
         });
@@ -55,7 +57,7 @@ export async function POST(req: NextRequest) {
             h: 0.5,
             fontSize: 18,
             fontFace: 'Arial',
-            color: 'a5b4fc',
+            color: '64748b', // Slate 500
             align: 'center'
         });
 
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
                 h: 0.4,
                 fontSize: 14,
                 fontFace: 'Arial',
-                color: 'a5b4fc'
+                color: '94a3b8' // Slate 400
             });
 
             // Title
@@ -82,7 +84,7 @@ export async function POST(req: NextRequest) {
                 h: 0.8,
                 fontSize: 32,
                 fontFace: 'Arial',
-                color: 'ffffff',
+                color: '1e293b', // Slate 800
                 bold: true
             });
 
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest) {
                 options: {
                     fontSize: 18,
                     fontFace: 'Arial',
-                    color: 'e2e8f0',
+                    color: '334155', // Slate 700
                     bullet: { type: 'bullet' as const, color: '6366f1' },
                     paraSpaceAfter: 12
                 }

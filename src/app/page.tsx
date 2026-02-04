@@ -615,23 +615,31 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Print Layout (Only visible when printing) */}
               <div className="hidden print:block">
                 {slides.map((slide, index) => (
-                  <div key={index} className="h-screen flex flex-col justify-center p-16 break-after-always border-4 border-black box-border">
-                    <div className="mb-12">
-                      <span className="text-lg font-mono text-gray-500 uppercase tracking-widest block mb-4">Slide {index + 1}</span>
-                      <h2 className="text-5xl font-bold text-black border-b-4 border-black pb-6">{slide.title}</h2>
+                  <div key={index} className="h-screen flex flex-col justify-start p-8 md:p-12 break-after-always border-0 box-border page-break-fix relative">
+                    {/* Header with slide number */}
+                    <div className="absolute top-6 right-8 text-gray-400 font-mono text-sm">
+                      {index + 1}
                     </div>
 
-                    <ul className="space-y-8">
+                    <div className="mb-8 mt-4">
+                      <h2 className="text-3xl md:text-4xl font-bold text-black border-b-2 border-zinc-200 pb-4 leading-tight">{slide.title}</h2>
+                    </div>
+
+                    <ul className="space-y-6">
                       {slide.bullets.map((bullet, bIndex) => (
-                        <li key={bIndex} className="text-3xl text-black pl-8 relative leading-relaxed">
-                          <span className="absolute left-0 top-4 w-3 h-3 rounded-full bg-black" />
+                        <li key={bIndex} className="text-xl md:text-2xl text-zinc-800 pl-6 relative leading-relaxed break-words">
+                          <span className="absolute left-0 top-3 w-2 h-2 rounded-full bg-zinc-400 print-bullet" />
                           {bullet}
                         </li>
                       ))}
                     </ul>
+
+                    {/* Footer branding */}
+                    <div className="absolute bottom-6 left-8 right-8 text-center border-t border-zinc-100 pt-4">
+                      <span className="text-xs text-zinc-300 uppercase tracking-widest">Generared by SlideMaker</span>
+                    </div>
                   </div>
                 ))}
               </div>
