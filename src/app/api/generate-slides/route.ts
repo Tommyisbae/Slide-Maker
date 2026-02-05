@@ -40,17 +40,16 @@ ${content}
 """
 
 CRITICAL RULES:
-1. Create AS MANY slides as needed to properly cover ALL the content - there is NO LIMIT. Could be 5 slides, could be 50, could be 100+. Cover everything thoroughly.
-2. Each slide should cover ONE clear concept or topic
-3. Each slide needs a concise, descriptive title
-4. Each slide should have 3-5 bullet points maximum
-5. Bullet points must be SELF-EXPLANATORY - someone who has never read the source material should understand them
-6. Avoid cryptic abbreviations or shorthand that requires prior knowledge
-7. Use simple, clear language while maintaining accuracy
-8. Define technical terms when they appear
-9. Include speaker notes with additional context or explanation
-10. Structure the slides in a logical learning progression
-11. Do NOT skip or summarize content - create slides for EVERYTHING
+1. Create AS MANY slides as needed to properly cover ALL the content - there is NO LIMIT.
+2. **MAINTAIN DEPTH**: Do not over-simplify complex topics. Keep the technical depth suitable for medical/professional study.
+3. **FILTER THE NOISE**: Remove conversational filler, rhetorical questions, and purely introductory transitions (e.g., "It is important to note that..."). Keep the HARD FACTS.
+4. **ONE CONCEPT PER SLIDE**: Break down complex topics into multiple slides.
+5. **SELF-EXPLANATORY BULLETS**: Each bullet point should be a complete thought, not just a keyword.
+6. Use simple, clear language ONLY for connecting words, but keep the technical terminology intact.
+7. Define technical terms when they appear if they are obscure.
+8. Include speaker notes with additional context.
+9. Structure the slides in a logical learning progression.
+10. Do NOT skip content - if it's a fact/mechanism/symptom, it belongs on a slide.
 
 RESPONSE FORMAT:
 Return ONLY a valid JSON array of slide objects. No markdown, no code blocks, no extra text.
