@@ -560,10 +560,9 @@ export default function Home() {
 
                       <h3 className="font-bold text-lg text-white mb-4 line-clamp-2 min-h-[3.5rem]">{slide.title}</h3>
 
-                      <ul className="space-y-2 mb-6 min-h-[6rem]">
+                      <ul className="space-y-2 mb-6 min-h-[6rem] list-disc pl-5 marker:text-zinc-600 group-hover:marker:text-violet-500 transition-colors">
                         {slide.bullets.slice(0, 3).map((bullet, bIndex) => (
-                          <li key={bIndex} className="text-sm text-zinc-400 pl-4 relative">
-                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-violet-500/50 transition-colors" />
+                          <li key={bIndex} className="text-sm text-zinc-400 pl-1">
                             <span className="line-clamp-2">{bullet}</span>
                           </li>
                         ))}
@@ -584,14 +583,13 @@ export default function Home() {
 
                       <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 max-w-2xl">{slides[currentPreviewIndex].title}</h2>
 
-                      <div className="w-full max-w-2xl text-left space-y-4 mb-12">
+                      <ul className="w-full max-w-2xl text-left space-y-4 mb-12 list-disc pl-8 marker:text-violet-500">
                         {slides[currentPreviewIndex].bullets.map((bullet, bIndex) => (
-                          <div key={bIndex} className="flex gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors group">
-                            <div className="mt-1.5 w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)] shrink-0" />
-                            <p className="text-lg text-zinc-300 group-hover:text-white transition-colors">{bullet}</p>
-                          </div>
+                          <li key={bIndex} className="text-lg text-zinc-300 pl-2">
+                            {bullet}
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                   </div>
 
