@@ -42,7 +42,7 @@ ${content}
 CRITICAL RULES:
 1. **NATURAL FLOW**: Let the content dictate the number of slides. **If a concept is simple, use one slide. If it is dense, span it across multiple slides.**
 2. **DO NOT CRAM**: Do not try to fit too much text on one slide. Readability is key.
-3. **TITLES**: For continuation slides, use the same title or append "(Cont.)".
+3. **TITLES**: **KEEP IT SHORT.** Max 3-6 words. No full sentences. Just the topic name.
 4. **MAINTAIN DEPTH**: Keep technical details, mechanisms, and definitions. Do not over-simplify.
 5. **FILTER NOISE**: Remove conversational filler/fluff ("It is interesting to note..."), but keep the *facts*.
 6. **BULLETS**: 3-5 bullets per slide. Self-explanatory.
@@ -57,7 +57,7 @@ Each slide object must have:
 Example format:
 [
   {
-    "title": "Topic Name",
+    "title": "Short Topic Name",
     "bullets": ["First point", "Second point"]
   },
   {
