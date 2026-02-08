@@ -40,19 +40,16 @@ ${content}
 """
 
 CRITICAL RULES:
-1. Create AS MANY slides as needed to properly cover ALL the content - there is NO LIMIT.
-2. **MAINTAIN DEPTH**: Do not over-simplify complex topics. Keep the technical depth suitable for medical/professional study.
-3. **FILTER THE NOISE**: Remove conversational filler, rhetorical questions, and purely introductory transitions (e.g., "It is important to note that..."). Keep the HARD FACTS.
-4. **ONE CONCEPT PER SLIDE**: Break down complex topics into multiple slides.
-5. **SELF-EXPLANATORY BULLETS**: Each bullet point should be a complete thought, not just a keyword.
-6. Use simple, clear language ONLY for connecting words, but keep the technical terminology intact.
-7. Define technical terms when they appear if they are obscure.
-8. Include speaker notes with additional context.
-9. Structure the slides in a logical learning progression.
-10. Do NOT skip content - if it's a fact/mechanism/symptom, it belongs on a slide.
+1. **COMPREHENSIVE COVERAGE**: Create AS MANY slides as needed. **Do NOT cram info.** A single concept SHOULD span multiple slides (e.g., 5+ slides for one dense topic).
+2. **MULTI-SLIDE CONCEPTS**: Do not force a new distinct topic on every slide. Flow the narrative naturally.
+3. **TITLES**: For continuation slides, use the same title or append "(Cont.)". You do NOT need a unique catchy title for every single slide if it breaks the flow.
+4. **MAINTAIN DEPTH**: Keep technical details, mechanisms, and definitions. Do not over-simplify.
+5. **FILTER NOISE**: Remove conversational filler/fluff ("It is interesting to note..."), but keep the *facts*.
+6. **BULLETS**: 3-5 bullets per slide. Self-explanatory.
+7. **NO SKIPPING**: Cover the entire provided text.
 
 RESPONSE FORMAT:
-Return ONLY a valid JSON array of slide objects. No markdown, no code blocks, no extra text.
+Return ONLY a valid JSON array of slide objects.
 Each slide object must have:
 - "title": string (the slide title)
 - "bullets": string[] (array of 3-5 bullet points)
@@ -60,8 +57,12 @@ Each slide object must have:
 Example format:
 [
   {
-    "title": "Introduction to Topic",
-    "bullets": ["First key point explained clearly", "Second important concept", "Third supporting detail"]
+    "title": "Topic Name",
+    "bullets": ["First point", "Second point"]
+  },
+  {
+    "title": "Topic Name (Cont.)",
+    "bullets": ["Third point", "Fourth point"]
   }
 ]`;
 
