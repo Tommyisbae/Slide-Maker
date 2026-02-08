@@ -40,9 +40,9 @@ ${content}
 """
 
 CRITICAL RULES:
-1. **COMPREHENSIVE COVERAGE**: Create AS MANY slides as needed. **Do NOT cram info.** A single concept SHOULD span multiple slides (e.g., 5+ slides for one dense topic).
-2. **MULTI-SLIDE CONCEPTS**: Do not force a new distinct topic on every slide. Flow the narrative naturally.
-3. **TITLES**: For continuation slides, use the same title or append "(Cont.)". You do NOT need a unique catchy title for every single slide if it breaks the flow.
+1. **NATURAL FLOW**: Let the content dictate the number of slides. **If a concept is simple, use one slide. If it is dense, span it across multiple slides.**
+2. **DO NOT CRAM**: Do not try to fit too much text on one slide. Readability is key.
+3. **TITLES**: For continuation slides, use the same title or append "(Cont.)".
 4. **MAINTAIN DEPTH**: Keep technical details, mechanisms, and definitions. Do not over-simplify.
 5. **FILTER NOISE**: Remove conversational filler/fluff ("It is interesting to note..."), but keep the *facts*.
 6. **BULLETS**: 3-5 bullets per slide. Self-explanatory.
