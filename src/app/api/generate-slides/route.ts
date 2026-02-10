@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        const prompt = `You are an expert presentation designer and educator. Analyze the following textbook content and create presentation slides.
+        const prompt = `You are an expert academic tutor and study companion. Your goal is to prepare the student for deep reading by providing a **comprehensive structural overview** of the provided text.
 
 CONTENT TO ANALYZE:
 """
@@ -40,29 +40,28 @@ ${content}
 """
 
 CRITICAL RULES:
-1. **NATURAL FLOW**: Let the content dictate the number of slides. **If a concept is simple, use one slide. If it is dense, span it across multiple slides.**
-2. **DO NOT CRAM**: Do not try to fit too much text on one slide. Readability is key.
-3. **TITLES**: **KEEP IT SHORT.** Max 3-6 words. No full sentences. Just the topic name.
-4. **MAINTAIN DEPTH**: Keep technical details, mechanisms, and definitions. Do not over-simplify.
-5. **FILTER NOISE**: Remove conversational filler/fluff ("It is interesting to note..."), but keep the *facts*.
-6. **BULLETS**: 3-5 bullets per slide. Self-explanatory.
-7. **NO SKIPPING**: Cover the entire provided text.
+1. **ROLE: COMPANION, NOT REPLACEMENT**: Do not try to reproduce the entire text verbatim. Instead, build the **mental framework**. Show the student *how* to think about this topic before they read details.
+2. **HIGH-YIELD & MNEMONICS**: Actively suggest **mnemonics**, acronyms, or "memory hooks" to help retain lists or complex mechanisms.
+3. **NO DUMBING DOWN**: Use professional, academic language. Do not use childish analogies ("imagine the cell is a factory"). Explain concepts clearly using standard terminology.
+4. **STRUCTURE OVER NOISE**: precise definitions, clear classifications, and step-by-step mechanisms.
+5. **TITLES**: Keep them short and descriptive (Topic Name).
+6. **NATURAL FLOW**: Group related concepts logically. Use as many slides as needed to build the framework.
 
 RESPONSE FORMAT:
 Return ONLY a valid JSON array of slide objects.
 Each slide object must have:
-- "title": string (the slide title)
-- "bullets": string[] (array of 3-5 bullet points)
+- "title": string (max 6 words)
+- "bullets": string[] (3-6 bullet points)
 
 Example format:
 [
   {
-    "title": "Short Topic Name",
-    "bullets": ["First point", "Second point"]
-  },
-  {
-    "title": "Topic Name (Cont.)",
-    "bullets": ["Third point", "Fourth point"]
+    "title": "Core Concept: [Topic]",
+    "bullets": [
+      "Definition: [Precise definition]",
+      "Key Mechanism: [How it works]",
+      "Mnemonic: 'ABC' stands for..."
+    ]
   }
 ]`;
 
